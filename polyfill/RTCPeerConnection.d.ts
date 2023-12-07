@@ -56,4 +56,6 @@ export default class _RTCPeerConnection extends EventTarget implements RTCPeerCo
     setConfiguration(configuration: RTCConfiguration): void;
     setLocalDescription(description: RTCSessionDescriptionInit): Promise<void>;
     setRemoteDescription(description: RTCSessionDescriptionInit): Promise<void>;
+
+    static generateCertificate(keygenAlgorithm: AlgorithmIdentifier): Promise<RTCCertificate>;
 }
