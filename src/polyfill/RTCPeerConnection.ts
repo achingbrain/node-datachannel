@@ -120,26 +120,7 @@ export default class RTCPeerConnection extends EventTarget implements globalThis
         this.#canTrickleIceCandidates = null;
 
         try {
-            const peerIdentity = (config as any)?.peerIdentity ?? `peer-${getRandomString(7)}`;
-            this.#peerConnection = new PeerConnection(peerIdentity,
-                {
-                    ...config,
-                    iceServers:
-                        config?.iceServers
-                            ?.map((server) => {
-                                const urls = Array.isArray(server.urls) ? server.urls : [server.urls];
-
-                                return urls.map((url) => {
-                                    if (server.username && server.credential) {
-                                        const [protocol, rest] = url.split(/:(.*)/);
-                                        return `${protocol}:${server.username}:${server.credential}@${rest}`;
-                                    }
-                                    return url;
-                                });
-                            })
-                            .flat() ?? [],
-                },
-            );
+            this.#peerConnection = this.createPeerConnection(config);
         } catch (error) {
             if (!error || !error.message) throw new exceptions.NotFoundError('Unknown error');
             throw new exceptions.SyntaxError(error.message);
@@ -228,6 +209,30 @@ export default class RTCPeerConnection extends EventTarget implements globalThis
                 },
             },
         });
+    }
+
+    protected createPeerConnection (config: RTCConfiguration): PeerConnection {
+        const peerIdentity = config.peerIdentity ?? `peer-${getRandomString(7)}`;
+
+        return new PeerConnection(peerIdentity,
+            {
+                ...config,
+                iceServers:
+                    config?.iceServers
+                        ?.map((server) => {
+                            const urls = Array.isArray(server.urls) ? server.urls : [server.urls];
+
+                            return urls.map((url) => {
+                                if (server.username && server.credential) {
+                                    const [protocol, rest] = url.split(/:(.*)/);
+                                    return `${protocol}:${server.username}:${server.credential}@${rest}`;
+                                }
+                                return url;
+                            });
+                        })
+                        .flat() ?? [],
+            },
+        );
     }
 
     get canTrickleIceCandidates(): boolean | null {
